@@ -17,7 +17,7 @@ const STEPS = [
   { title: "ייצוא", sub: "PDF", icon: FileDown },
 ];
 
-const LS_TEMPLATE = "teudot.template.v1";
+const LS_TEMPLATE = "teudot.template.v3";
 const LS_MAPPING = "teudot.mapping.v1";
 
 export default function Home() {

@@ -43,7 +43,7 @@ export default function MappingStep({
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[400px_1fr]">
+    <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
       <Card className="p-5">
         <div className="mb-4 flex items-center justify-between gap-2">
           <div>

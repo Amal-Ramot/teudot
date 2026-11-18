@@ -74,7 +74,7 @@ export default function ExportStep({
   const pctDone = progress ? Math.round((progress.done / Math.max(1, progress.total)) * 100) : 0;
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[1fr_420px]">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 border-b border-slate-200/70 p-4">
           <h2 className="text-lg font-semibold">בחירת תלמידים</h2>

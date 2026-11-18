@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
-import { FileSpreadsheet, UploadCloud, Download, Table2, X, ArrowLeft } from "lucide-react";
-import { Button, Card, Badge, inputCls } from "./ui";
-import { Dataset, downloadSampleExcel, readWorkbook, sheetToDataset } from "@/lib/data";
+import { FileSpreadsheet, UploadCloud, Download, Layers, X, ArrowLeft, Check, Merge } from "lucide-react";
+import { Button, Card, Badge } from "./ui";
+import { Dataset, buildDataset, downloadSampleExcel, readWorkbook } from "@/lib/data";
 
 export default function UploadStep({
   data,
@@ -26,7 +26,7 @@ export default function UploadStep({
     setBusy(true);
     try {
       const wb = await readWorkbook(file);
-      const ds = sheetToDataset(wb, wb.SheetNames[0], file.name);
+      const ds = buildDataset(wb, file.name);
       if (!ds.rows.length) throw new Error("לא נמצאו שורות נתונים בגיליון");
       setData(ds);
     } catch (e) {
@@ -105,26 +105,51 @@ export default function UploadStep({
                 <p className="truncate font-semibold">{data.fileName}</p>
                 <p className="text-xs text-slate-500">
                   {data.rows.length} תלמידים · {data.columns.length} עמודות
+                  {data.sheets.length > 1 && ` · ${data.selected.length}/${data.sheets.length} גיליונות`}
                 </p>
               </div>
-              {data.sheets.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <Table2 className="size-4 text-slate-400" />
-                  <select
-                    className={`${inputCls} h-9 w-44`}
-                    value={data.sheet}
-                    onChange={(e) => setData(sheetToDataset(data.workbook, e.target.value, data.fileName))}
-                  >
-                    {data.sheets.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <Button variant="ghost" size="sm" onClick={() => setData(null)}>
                 <X className="size-4" /> הסרה
               </Button>
             </div>
+            {data.sheets.length > 1 && (
+              <div className="border-b border-slate-200/70 bg-slate-50/50 px-5 py-3">
+                <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                  <Layers className="size-3.5" /> נמצאו {data.sheets.length} גיליונות – הנתונים מכל הגיליונות המסומנים מאוחדים לרשימה אחת
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {data.sheets.map((sh) => {
+                    const on = data.selected.includes(sh.name);
+                    return (
+                      <button
+                        key={sh.name}
+                        title={sh.columns.join(" · ")}
+                        onClick={() => {
+                          const next = on ? data.selected.filter((n) => n !== sh.name) : [...data.selected, sh.name];
+                          if (!next.length) return;
+                          const order = data.sheets.map((x) => x.name).filter((n) => next.includes(n));
+                          setData(buildDataset(data.workbook, data.fileName, order));
+                        }}
+                        className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm ring-1 transition ${
+                          on ? "bg-white font-medium text-slate-800 ring-brand-300 shadow-sm" : "bg-transparent text-slate-400 ring-slate-200 line-through"
+                        }`}
+                      >
+                        <span className={`grid size-4 place-items-center rounded ${on ? "bg-brand-600 text-white" : "ring-1 ring-slate-300"}`}>
+                          {on && <Check className="size-3" strokeWidth={3} />}
+                        </span>
+                        {sh.name}
+                        <span className="rounded-md bg-slate-100 px-1.5 text-xs text-slate-500">{sh.rows}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {data.merged > 0 && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700">
+                    <Merge className="size-3.5" /> {data.merged} שורות של תלמידים שמופיעים בכמה גיליונות אוחדו לפי ת״ז
+                  </p>
+                )}
+              </div>
+            )}
             <div className="scroll-thin max-h-[420px] overflow-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur">

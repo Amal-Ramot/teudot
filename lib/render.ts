@@ -78,12 +78,43 @@ export async function renderCertificate(
     if (el.kind === "image") {
       const img = imgs[i];
       if (!img) return;
-      // התאמה (contain) בתוך המסגרת
-      const r = Math.min(ew / img.naturalWidth, eh / img.naturalHeight);
+      // התאמה (contain) בתוך המסגרת, כולל סיבוב
+      const rot = (((el.rotation ?? 0) % 360) + 360) % 360;
+      const swap = rot === 90 || rot === 270;
+      const iw = swap ? img.naturalHeight : img.naturalWidth;
+      const ih = swap ? img.naturalWidth : img.naturalHeight;
+      const r = Math.min(ew / iw, eh / ih);
+      ctx.save();
+      ctx.translate(x + ew / 2, y + eh / 2);
+      ctx.rotate((rot * Math.PI) / 180);
       const dw = img.naturalWidth * r;
       const dh = img.naturalHeight * r;
-      ctx.drawImage(img, x + (ew - dw) / 2, y + (eh - dh) / 2, dw, dh);
+      ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+      ctx.restore();
       return;
+    }
+    if (el.kind === "line") {
+      ctx.save();
+      ctx.strokeStyle = el.color;
+      ctx.lineWidth = Math.max(1, el.thickness * pxPerMm);
+      ctx.beginPath();
+      ctx.moveTo(x, y + eh / 2);
+      ctx.lineTo(x + ew, y + eh / 2);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    if (el.underline) {
+      // קו ארוך מתחת לערך – לכל רוחב התיבה
+      ctx.save();
+      ctx.strokeStyle = el.color;
+      ctx.lineWidth = Math.max(1, 0.3 * pxPerMm);
+      const ly = y + eh;
+      ctx.beginPath();
+      ctx.moveTo(x, ly);
+      ctx.lineTo(x + ew, ly);
+      ctx.stroke();
+      ctx.restore();
     }
     const text = fillText(el.text, opts.showTokens ? null : row, mapping);
     if (!text) return;
@@ -93,7 +124,7 @@ export async function renderCertificate(
     ctx.textBaseline = "middle";
     let size = el.size;
     // הקטנה אוטומטית אם הטקסט ארוך מהמסגרת
-    const pad = 1 * pxPerMm;
+    const pad = (el.pad ?? 2) * pxPerMm;
     for (let k = 0; k < 30; k++) {
       ctx.font = fontSpec({ ...el, size }, pxPerMm);
       if (ctx.measureText(text).width <= ew - pad * 2 || size <= 6) break;
@@ -110,7 +141,7 @@ export async function renderCertificate(
       ctx.textAlign = "center";
       tx = x + ew / 2;
     }
-    ctx.fillText(text, tx, y + eh / 2 + eh * 0.04);
+    ctx.fillText(text, tx, y + eh / 2 + size * (25.4 / 72) * pxPerMm * 0.06);
     ctx.restore();
   });
 }

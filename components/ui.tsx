@@ -35,7 +35,7 @@ export function Label({ children, className = "" }: { children: ReactNode; class
 }
 
 export const inputCls =
-  "h-10 w-full rounded-xl bg-white px-3 text-sm text-slate-800 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-brand-500";
+  "h-10 w-full min-w-0 rounded-xl bg-white px-3 text-sm text-slate-800 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-brand-500";
 
 export function Badge({ children, tone = "slate" }: { children: ReactNode; tone?: "slate" | "green" | "amber" | "brand" }) {
   const t = {
